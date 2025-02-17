@@ -1,6 +1,6 @@
 # Bepacom EcoPanel BACnet Interface
 
-<img src="https://raw.githubusercontent.com/Bepacom-Raalte/Bepacom-BACnet-IP-Integration/main/images/logo.png" height=400/>
+<img src="images/logo.png" height=400/>
 
 This integration is intended to display the data from the Bepacom EcoPanel BACnet Interface add-on on the Lovelace UI of Home Assistant.
 
@@ -16,14 +16,14 @@ It currently supports these BACnet object types:
 - Multi State Output
 - Multi State Value
 
-<img src="https://raw.githubusercontent.com/Bepacom-Raalte/Bepacom-BACnet-IP-Integration/main/images/integrationadded.png"/>
+<img src="images/integrationadded.png"/>
 
 
 # HACS
 
 This repository can be added to your HACS instance!
 
-[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=Bepacom-Raalte&repository=Bepacom-BACnet-IP-Integration&category=Integration)
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=mateusz-lichota&repository=Bepacom-BACnet-IP-Integration&category=Integration)
 
 
 # Installation
@@ -32,7 +32,7 @@ Firstly, install the Bepacom BACnet/IP add-on from here:
 
 [BACnet/IP-addon](https://github.com/Bepacom-Raalte/bepacom-HA-Addons/tree/main/bacnetinterface)
 
-<img src="https://raw.githubusercontent.com/Bepacom-Raalte/Bepacom-BACnet-IP-Integration/main/images/addon.png"/>
+<img src="images/addon.png"/>
 
 Download and copy this integration to your Home Assistant's 'custom_components' folder located in /config/.
 
@@ -53,15 +53,15 @@ Restart Home Assistant after putting this integration in /config/.
 
 1. Add a new instance of the Bepacom BACnet/IP Interface.
 
-<img src="https://raw.githubusercontent.com/Bepacom-Raalte/Bepacom-BACnet-IP-Integration/main/images/integration.png"/>
+<img src="images/integration.png"/>
 
 2. Specify your connection details and preferences. Below the options are explained.
 
-<img src="https://raw.githubusercontent.com/Bepacom-Raalte/Bepacom-BACnet-IP-Integration/main/images/setup.png"/>
+<img src="images/setup.png"/>
 
 3. Success!
 
-<img src="https://raw.githubusercontent.com/Bepacom-Raalte/Bepacom-BACnet-IP-Integration/main/images/success.png"/>
+<img src="images/success.png"/>
 
 ## IP Address
 

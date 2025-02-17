@@ -1,0 +1,15 @@
+[project]
+name = "bepacom-bacnet-ip-integration"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "aioecopanel>=0.0.14",
+    "homeassistant>=2024.12.5",
+]
+
+[dependency-groups]
+dev = [
+    "homeassistant-stubs>=2024.12.5",
+]

@@ -4,22 +4,37 @@ from __future__ import annotations
 
 from asyncio import sleep
 from copy import copy
+from typing import Any, cast
 
-import voluptuous as vol
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import (ATTR_ENTITY_ID, CONF_ENABLED, CONF_HOST,
-                                 CONF_NAME, CONF_PORT)
-from homeassistant.core import (HomeAssistant, ServiceCall, ServiceResponse,
-                                SupportsResponse)
-from homeassistant.helpers import config_validation as cv
+from homeassistant.const import (
+    ATTR_ENTITY_ID,
+    CONF_ENABLED,
+    CONF_HOST,
+    CONF_NAME,
+    CONF_PORT,
+)
+from homeassistant.core import (
+    HomeAssistant,
+    ServiceCall,
+    ServiceResponse,
+    SupportsResponse,
+)
 from homeassistant.helpers import entity_registry as er
-from homeassistant.helpers.device_registry import DeviceEntry, async_get
-from homeassistant.util.json import JsonObjectType
+from homeassistant.helpers.device_registry import DeviceEntry
 
-from .const import (ATTR_INDEX, ATTR_PRIORITY, ATTR_PROPERTY, ATTR_VALUE,
-                    DOMAIN, LOGGER, WRITE_PROPERTY_SCHEMA,
-                    WRITE_PROPERTY_SERVICE_NAME, WRITE_RELEASE_SCHEMA,
-                    WRITE_RELEASE_SERVICE_NAME)
+from .const import (
+    ATTR_INDEX,
+    ATTR_PRIORITY,
+    ATTR_PROPERTY,
+    ATTR_VALUE,
+    DOMAIN,
+    LOGGER,
+    WRITE_PROPERTY_SCHEMA,
+    WRITE_PROPERTY_SERVICE_NAME,
+    WRITE_RELEASE_SCHEMA,
+    WRITE_RELEASE_SERVICE_NAME,
+)
 from .coordinator import EcoPanelDataUpdateCoordinator
 
 # List of platforms to support. There should be a matching .py file for each,
@@ -64,6 +79,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         entity_registry = er.async_get(hass)
 
         entity_data = entity_registry.async_get(call.data[ATTR_ENTITY_ID][0])
+        assert entity_data is not None
 
         device_id, object_id = entity_data.unique_id.split("_")
 
@@ -84,6 +100,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         entity_registry = er.async_get(hass)
 
         entity_data = entity_registry.async_get(call.data[ATTR_ENTITY_ID][0])
+        assert entity_data is not None
 
         device_id, object_id = entity_data.unique_id.split("_")
 
@@ -131,17 +148,19 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 def validate_entry(entry: ConfigEntry) -> ConfigEntry:
     """Check if all values are filled in, otherwise replace"""
 
+    entry_data = cast(dict[str, Any], entry.data)
+
     if not entry.data.get(CONF_PORT):
-        entry.data.update({CONF_PORT: 8099})
+        entry_data.update({CONF_PORT: 8099})
 
     if not entry.data.get(CONF_ENABLED):
-        entry.data.update({CONF_ENABLED: True})
+        entry_data.update({CONF_ENABLED: True})
 
     if not entry.data.get(CONF_HOST):
-        entry.data.update({CONF_HOST: "127.0.0.1"})
+        entry_data.update({CONF_HOST: "127.0.0.1"})
 
     if not entry.data.get(CONF_NAME):
-        entry.data.update({CONF_NAME: "object_name"})
+        entry_data.update({CONF_NAME: "object_name"})
 
     return entry
 
@@ -171,7 +190,7 @@ async def async_remove_config_entry_device(
         config_entry.entry_id
     ]
 
-    for domain, device_id in device_entry.identifiers:
+    for _domain, device_id in device_entry.identifiers:
         try:
             coordinator.logger.info(
                 f"(Removing device {coordinator.data.devices.get(device_id)}"
@@ -194,24 +213,22 @@ async def async_monitor_data_size(
     """Monitor data size, and reload if it increases."""
 
     old_devices = copy(coordinator.data.devices)
-    old_devices_dict = {}
+    old_devices_dict: dict[str, dict[str, Any]] = {}
 
     for device in old_devices:
-        objects = {device: copy(coordinator.data.devices[device].objects)}
-        old_devices_dict.update(objects)
-
+        old_devices_dict[device] = copy(coordinator.data.devices[device].objects)
     while True:
         await sleep(30)
 
         if len(coordinator.data.devices) > len(old_devices):
-            LOGGER.debug(f"Reloading after new device detected!")
+            LOGGER.debug("Reloading after new device detected!")
 
-            await hass.config_entries.async_schedule_reload(entry.entry_id)
+            hass.config_entries.async_schedule_reload(entry.entry_id)
 
         for device in coordinator.data.devices:
             if len(coordinator.data.devices[device].objects) > len(
                 old_devices_dict[device]
             ):
-                LOGGER.debug(f"Increased object size")
+                LOGGER.debug("Increased object size")
 
-                await hass.config_entries.async_schedule_reload(entry.entry_id)
+                hass.config_entries.async_schedule_reload(entry.entry_id)

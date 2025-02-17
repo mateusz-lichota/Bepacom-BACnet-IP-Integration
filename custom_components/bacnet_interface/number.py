@@ -1,22 +1,19 @@
-from collections.abc import Callable
-from dataclasses import dataclass
-from statistics import mode
 from typing import Any
 
-from homeassistant.components.number import (NumberDeviceClass, NumberEntity,
-                                             NumberEntityDescription)
+from homeassistant.components.number import (
+    NumberEntity,
+)
 from homeassistant.components.number.const import DEVICE_CLASS_UNITS
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import (CONF_ENABLED, CONF_NAME, PERCENTAGE,
-                                 UnitOfElectricCurrent,
-                                 UnitOfElectricPotential, UnitOfInformation,
-                                 UnitOfIrradiance, UnitOfTemperature)
+from homeassistant.const import (
+    CONF_ENABLED,
+    CONF_NAME,
+)
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity import DeviceInfo, EntityCategory
+from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.typing import StateType
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
-from homeassistant.util.dt import utcnow
+from homeassistant.components.number import NumberMode
 
 from .const import CONF_ANALOG_OUTPUT, CONF_ANALOG_VALUE, DOMAIN, LOGGER
 from .coordinator import EcoPanelDataUpdateCoordinator
@@ -30,11 +27,11 @@ async def async_setup_entry(
 ) -> None:
     """Set up EcoPanel sensor based on a config entry."""
     coordinator: EcoPanelDataUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]
-    entity_list: list = []
+    entity_list: list[NumberEntity] = []
 
     # Collect from all devices the objects that can become a sensor
     if not coordinator.data.devices:
-        LOGGER.warning(f"No devices received from API!")
+        LOGGER.warning("No devices received from API!")
         return
 
     for deviceid in coordinator.data.devices:
@@ -78,6 +75,7 @@ class AnalogOutputEntity(
     CoordinatorEntity[EcoPanelDataUpdateCoordinator], NumberEntity
 ):
     _attr_has_entity_name = True
+    _attr_icon = "mdi:gesture-swipe-vertical"
 
     def __init__(
         self,
@@ -91,11 +89,11 @@ class AnalogOutputEntity(
         self.objectid = objectid
 
     @property
-    def unique_id(self) -> str:
+    def unique_id(self) -> str:  # pyright: ignore[reportIncompatibleMethodOverride]
         return f"{self.deviceid}_{self.objectid}"
 
     @property
-    def name(self) -> str:
+    def name(self) -> str:  # pyright: ignore[reportIncompatibleMethodOverride]
         name = self.coordinator.config_entry.data.get(CONF_NAME, "object_name")
         if name == "description":
             return f"{self.coordinator.data.devices[self.deviceid].objects[self.objectid].description}"
@@ -110,17 +108,13 @@ class AnalogOutputEntity(
             return f"{self.coordinator.data.devices[self.deviceid].objects[self.objectid].objectName}"
 
     @property
-    def icon(self):
-        return "mdi:gesture-swipe-vertical"
-
-    @property
-    def entity_registry_enabled_default(self) -> bool:
+    def entity_registry_enabled_default(self) -> bool:  # pyright: ignore[reportIncompatibleMethodOverride]
         """Return if the entity should be enabled when first added to the entity registry."""
         return self.coordinator.config_entry.data.get(CONF_ENABLED, False)
 
     @property
-    def mode(self) -> str:
-        return "box"
+    def mode(self) -> str:  # pyright: ignore[reportIncompatibleMethodOverride]
+        return NumberMode.BOX
 
     @property
     def native_step(self):

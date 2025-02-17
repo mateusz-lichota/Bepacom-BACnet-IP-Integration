@@ -5,23 +5,42 @@ from __future__ import annotations
 from typing import Any
 
 import voluptuous as vol
-from aioecopanel import (DeviceDict, EcoPanelConnectionError,
-                         EcoPanelEmptyResponseError, Interface)
-from homeassistant.components.hassio import HassioServiceInfo
-from homeassistant.config_entries import (CONN_CLASS_LOCAL_PUSH, ConfigEntry,
-                                          ConfigFlow, ConfigFlowResult,
-                                          OptionsFlow)
-from homeassistant.const import (CONF_CUSTOMIZE, CONF_ENABLED, CONF_HOST,
-                                 CONF_NAME, CONF_PORT, CONF_TARGET)
-from homeassistant.core import HomeAssistant, callback
-from homeassistant.data_entry_flow import FlowResult
+from aioecopanel import (
+    DeviceDict,
+    EcoPanelConnectionError,
+    EcoPanelEmptyResponseError,
+    Interface,
+)
+from homeassistant.config_entries import (
+    CONN_CLASS_LOCAL_PUSH,
+    ConfigEntry,
+    ConfigFlow,
+    ConfigFlowResult,
+    OptionsFlow,
+)
+from homeassistant.const import (
+    CONF_CUSTOMIZE,
+    CONF_ENABLED,
+    CONF_HOST,
+    CONF_NAME,
+    CONF_PORT,
+)
+from homeassistant.core import callback
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
-from homeassistant.helpers.selector import selector
+from homeassistant.helpers.selector import selector, Selector  # pyright: ignore[reportUnknownVariableType]
 
-from .const import CONF_ANALOG_OUTPUT  # pylint:disable=unused-import
-from .const import (CONF_ANALOG_VALUE, CONF_BINARY_OUTPUT, CONF_BINARY_VALUE,
-                    CONF_MULTISTATE_OUTPUT, CONF_MULTISTATE_VALUE, DOMAIN,
-                    LOGGER, NAME_OPTIONS, WRITE_OPTIONS)
+from .const import CONF_ANALOG_OUTPUT
+from .const import (
+    CONF_ANALOG_VALUE,
+    CONF_BINARY_OUTPUT,
+    CONF_BINARY_VALUE,
+    CONF_MULTISTATE_OUTPUT,
+    CONF_MULTISTATE_VALUE,
+    DOMAIN,
+    LOGGER,
+    NAME_OPTIONS,
+    WRITE_OPTIONS,
+)
 
 _LOGGER = LOGGER
 
@@ -34,7 +53,7 @@ class EcoPanelConfigFlow(ConfigFlow, domain=DOMAIN):
 
     def __init__(self) -> None:
         """Initialize options flow."""
-        self.options = dict()
+        self.options: dict[str, Any] = dict()
 
     @staticmethod
     @callback
@@ -51,10 +70,8 @@ class EcoPanelConfigFlow(ConfigFlow, domain=DOMAIN):
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Handle a flow initiated by the user."""
-
-        errors = {}
 
         if self._async_current_entries():
             return self.async_abort(reason="single_instance_allowed")
@@ -71,15 +88,14 @@ class EcoPanelConfigFlow(ConfigFlow, domain=DOMAIN):
 
     async def async_step_host(
         self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Get options for naming the entities"""
 
-        errors = {}
+        errors: dict[str, str] = {}
 
         if user_input is not None:
-
             try:
-                devicedict = await self._async_get_device(
+                _ = await self._async_get_device(
                     host=user_input[CONF_HOST], port=user_input[CONF_PORT]
                 )
             except EcoPanelConnectionError:
@@ -111,7 +127,7 @@ class EcoPanelConfigFlow(ConfigFlow, domain=DOMAIN):
 
     async def async_step_naming(
         self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Get options for naming the entities"""
 
         # Show form for naming and if you want to have advanced config. If so, option step_writing will be presented.
@@ -160,14 +176,14 @@ class EcoPanelConfigFlow(ConfigFlow, domain=DOMAIN):
 
     async def async_step_writing(
         self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Get options for what properties to write to per objecttype"""
 
         if user_input is not None:
             self.options.update(user_input)
             return await self._create_options()
 
-        write_selector = selector(
+        write_selector: Selector[Any] = selector(
             {
                 "select": {
                     "options": WRITE_OPTIONS,
@@ -252,7 +268,7 @@ class OptionsFlowHandler(OptionsFlow):
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Manage EcoPanel options."""
 
         return await self.async_step_host()
@@ -265,15 +281,14 @@ class OptionsFlowHandler(OptionsFlow):
 
     async def async_step_host(
         self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Get options for naming the entities"""
 
-        errors = {}
+        errors: dict[str, str] = {}
 
         if user_input is not None:
-
             try:
-                devicedict = await self._async_get_device(
+                _ = await self._async_get_device(
                     host=user_input[CONF_HOST], port=user_input[CONF_PORT]
                 )
             except EcoPanelConnectionError:
@@ -309,7 +324,7 @@ class OptionsFlowHandler(OptionsFlow):
 
     async def async_step_naming(
         self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Get options for naming the entities"""
 
         # Show form for naming and if you want to have advanced config. If so, option step_writing will be presented.
@@ -357,7 +372,7 @@ class OptionsFlowHandler(OptionsFlow):
 
     async def async_step_writing(
         self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Get options for what properties to write to per objecttype"""
         # show form for analogValue, analogOutput, binaryValue, binaryOutput, multiStateValue, multiStateOutput with dropdown choosing either present_value or relinquishDefault
 
@@ -365,7 +380,7 @@ class OptionsFlowHandler(OptionsFlow):
             self.options.update(user_input)
             return await self._update_options()
 
-        write_selector = selector(
+        write_selector: Selector[Any] = selector(
             {
                 "select": {
                     "options": WRITE_OPTIONS,

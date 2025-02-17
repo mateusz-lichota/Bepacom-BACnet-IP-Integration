@@ -2,17 +2,19 @@
 
 from __future__ import annotations
 
-import asyncio
-from datetime import timedelta
 
-from aioecopanel import (DeviceDict, DeviceDictError, EcoPanelConnectionClosed,
-                         EcoPanelError, Interface)
+from aioecopanel import (
+    DeviceDict,
+    DeviceDictError,
+    EcoPanelConnectionClosed,
+    EcoPanelError,
+    Interface,
+)
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_HOST, CONF_PORT, EVENT_HOMEASSISTANT_STOP
 from homeassistant.core import CALLBACK_TYPE, Event, HomeAssistant, callback
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
-from homeassistant.helpers.update_coordinator import (DataUpdateCoordinator,
-                                                      UpdateFailed)
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .const import DOMAIN, LOGGER, SCAN_INTERVAL
 
@@ -21,6 +23,7 @@ class EcoPanelDataUpdateCoordinator(DataUpdateCoordinator[DeviceDict]):
     """EcoPanel Data Update Coordinator"""
 
     config_entry: ConfigEntry
+    data: DeviceDict
 
     def __init__(
         self,
@@ -47,12 +50,12 @@ class EcoPanelDataUpdateCoordinator(DataUpdateCoordinator[DeviceDict]):
     def _use_websocket(self) -> None:
         """Use websockets for updating"""
 
-        def check_data(data) -> None:
+        def check_data(data: DeviceDict) -> None:
             LOGGER.debug("check_data")
-            if not isinstance(data, DeviceDict):
+            if not isinstance(data, DeviceDict):  # pyright: ignore[reportUnnecessaryIsInstance]
                 LOGGER.warning(f"Received data is not DeviceDict type! {data}")
-            elif data.devices is None:
-                LOGGER.warning(f"Received data.devices is NoneType!")
+            elif data.devices is None:  # pyright: ignore[reportUnnecessaryComparison]
+                LOGGER.warning("Received data.devices is NoneType!")
             else:
                 self.async_set_updated_data(data)
 
@@ -67,7 +70,7 @@ class EcoPanelDataUpdateCoordinator(DataUpdateCoordinator[DeviceDict]):
                 if self.unsub:
                     self.unsub()
                     self.unsub = None
-                    LOGGER.debug(f"Unsub after failing to connect")
+                    LOGGER.debug("Unsub after failing to connect")
                 return
 
             LOGGER.debug("Connected websocket")
@@ -124,7 +127,7 @@ class EcoPanelDataUpdateCoordinator(DataUpdateCoordinator[DeviceDict]):
         except (EcoPanelError, DeviceDictError) as error:
             raise UpdateFailed(f"Invalid response from API: {error}") from error
 
-        if devicedict is not None and not self.interface.connected and not self.unsub:
+        if not self.interface.connected and not self.unsub:
             self._use_websocket()
 
         return devicedict

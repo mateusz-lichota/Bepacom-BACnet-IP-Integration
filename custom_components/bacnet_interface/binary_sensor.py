@@ -1,17 +1,12 @@
-from collections.abc import Callable
-from dataclasses import dataclass
 from typing import Any
 
-from homeassistant.components.binary_sensor import (
-    BinarySensorDeviceClass, BinarySensorEntity, BinarySensorEntityDescription)
+from homeassistant.components.binary_sensor import BinarySensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_ENABLED, CONF_NAME
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity import DeviceInfo, EntityCategory
+from homeassistant.helpers.entity import DeviceInfo, Entity
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.typing import StateType
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
-from homeassistant.util.dt import utcnow
 
 from .const import DOMAIN, LOGGER
 from .coordinator import EcoPanelDataUpdateCoordinator
@@ -24,7 +19,7 @@ async def async_setup_entry(
 ) -> None:
     """Set up EcoPanel sensor based on a config entry."""
     coordinator: EcoPanelDataUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]
-    entity_list: list = []
+    entity_list: list[Entity] = []
 
     # Collect from all devices the objects that can become a binary sensor
     for deviceid in coordinator.data.devices:
@@ -69,11 +64,11 @@ class BinaryInputEntity(
         self.objectid = objectid
 
     @property
-    def unique_id(self) -> str:
+    def unique_id(self) -> str:  # pyright: ignore[reportIncompatibleMethodOverride]
         return f"{self.deviceid}_{self.objectid}"
 
     @property
-    def name(self) -> str:
+    def name(self) -> str:  # pyright: ignore[reportIncompatibleMethodOverride]
         name = self.coordinator.config_entry.data.get(CONF_NAME, "object_name")
         if name == "description":
             return f"{self.coordinator.data.devices[self.deviceid].objects[self.objectid].description}"
@@ -88,12 +83,12 @@ class BinaryInputEntity(
             return f"{self.coordinator.data.devices[self.deviceid].objects[self.objectid].objectName}"
 
     @property
-    def entity_registry_enabled_default(self) -> bool:
+    def entity_registry_enabled_default(self) -> bool:  # pyright: ignore[reportIncompatibleMethodOverride]
         """Return if the entity should be enabled when first added to the entity registry."""
         return self.coordinator.config_entry.data.get(CONF_ENABLED, False)
 
     @property
-    def is_on(self) -> bool:
+    def is_on(self) -> bool | None:  # pyright: ignore[reportIncompatibleMethodOverride]
         if (
             self.coordinator.data.devices[self.deviceid]
             .objects[self.objectid]
@@ -108,13 +103,15 @@ class BinaryInputEntity(
             == "inactive"
         ):
             return False
+        else:
+            return None
 
     @property
-    def icon(self):
+    def icon(self):  # pyright: ignore[reportIncompatibleMethodOverride]
         return "mdi:lightbulb-outline"
 
     @property
-    def device_info(self) -> DeviceInfo:
+    def device_info(self) -> DeviceInfo:  # pyright: ignore[reportIncompatibleMethodOverride]
         return DeviceInfo(
             identifiers={(DOMAIN, self.deviceid)},
             name=f"{self.coordinator.data.devices[self.deviceid].objects[self.deviceid].objectName}",
@@ -127,7 +124,7 @@ class BinaryInputEntity(
         )
 
     @property
-    def extra_state_attributes(self) -> dict[str, Any]:
+    def extra_state_attributes(self) -> dict[str, Any]:  # pyright: ignore[reportIncompatibleMethodOverride]
         return {
             "inAlarm": bool(
                 self.coordinator.data.devices[self.deviceid]
