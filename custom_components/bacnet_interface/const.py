@@ -20,11 +20,16 @@ NAME_OPTIONS = ["object_name", "description", "object_identifier"]
 
 WRITE_OPTIONS = ["presentValue", "relinquishDefault"]
 
+
+def entity_ids_validator(value: str | list[str]):
+    cv.entity_ids(value)  # type: ignore
+
+
 WRITE_RELEASE_SERVICE_NAME = "write_release"
 ATTR_PRIORITY = "priority"
 WRITE_RELEASE_SCHEMA = vol.Schema(
     {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_ids,
+        vol.Required(ATTR_ENTITY_ID): entity_ids_validator,
         vol.Optional(ATTR_PRIORITY): int,
     }
 )
@@ -35,7 +40,7 @@ ATTR_VALUE = "value"
 ATTR_INDEX = "array_index"
 WRITE_PROPERTY_SCHEMA = vol.Schema(
     {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_ids,
+        vol.Required(ATTR_ENTITY_ID): entity_ids_validator,
         vol.Optional(ATTR_PROPERTY): str,
         vol.Optional(ATTR_VALUE): str,
         vol.Optional(ATTR_INDEX): int,
