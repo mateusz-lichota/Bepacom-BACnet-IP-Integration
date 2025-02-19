@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from asyncio import sleep
-from copy import copy
 from typing import Any, cast
 
 from homeassistant.config_entries import ConfigEntry
@@ -70,7 +69,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
 
     entry.async_create_background_task(
-        hass, async_monitor_data_size(hass, entry, coordinator), "bacnet-monitor-data"
+        hass,
+        async_monitor_data_size(hass, entry, coordinator),
+        name="bacnet-monitor-data",
     )
 
     async def write_release(call: ServiceCall) -> ServiceResponse:
@@ -208,27 +209,28 @@ async def async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
 
 
 async def async_monitor_data_size(
-    hass: HomeAssistant, entry: ConfigEntry, coordinator: EcoPanelDataUpdateCoordinator
+    hass: HomeAssistant,
+    entry: ConfigEntry,
+    coordinator: EcoPanelDataUpdateCoordinator,
+    reload_period_seconds: int = 30,
 ) -> None:
     """Monitor data size, and reload if it increases."""
 
-    old_devices = copy(coordinator.data.devices)
-    old_devices_dict: dict[str, dict[str, Any]] = {}
-
-    for device in old_devices:
-        old_devices_dict[device] = copy(coordinator.data.devices[device].objects)
+    num_old_devices = len(coordinator.data.devices)
+    old_device_sizes = {
+        device: len(coordinator.data.devices[device].objects)
+        for device in coordinator.data.devices
+    }
     while True:
-        await sleep(30)
+        await sleep(reload_period_seconds)
 
-        if len(coordinator.data.devices) > len(old_devices):
+        if len(coordinator.data.devices) > num_old_devices:
             LOGGER.debug("Reloading after new device detected!")
 
             hass.config_entries.async_schedule_reload(entry.entry_id)
 
         for device in coordinator.data.devices:
-            if len(coordinator.data.devices[device].objects) > len(
-                old_devices_dict[device]
-            ):
+            if len(coordinator.data.devices[device].objects) > old_device_sizes[device]:
                 LOGGER.debug("Increased object size")
 
                 hass.config_entries.async_schedule_reload(entry.entry_id)

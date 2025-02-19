@@ -1,27 +1,18 @@
-from collections.abc import Callable
-from dataclasses import dataclass
-from math import log10
 from typing import Any
 
-from homeassistant.components.sensor import (SensorDeviceClass, SensorEntity,
-                                             SensorEntityDescription,
-                                             SensorStateClass)
+from homeassistant.components.sensor import SensorEntity
 from homeassistant.components.sensor.const import DEVICE_CLASS_UNITS
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import (CONF_ENABLED, CONF_NAME, UnitOfEnergy,
-                                 UnitOfVolume)
+from homeassistant.const import CONF_ENABLED, CONF_NAME, UnitOfEnergy, UnitOfVolume
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity import DeviceInfo, EntityCategory
+from homeassistant.helpers.entity import DeviceInfo, Entity
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.typing import StateType
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
-from homeassistant.util.dt import utcnow
 
-from .const import STATETEXT_OFFSET  # JCO
+from .const import STATETEXT_OFFSET
 from .const import DOMAIN, LOGGER
 from .coordinator import EcoPanelDataUpdateCoordinator
-from .helper import (bacnet_to_device_class, bacnet_to_ha_units,
-                     decimal_places_needed)
+from .helper import bacnet_to_device_class, bacnet_to_ha_units, decimal_places_needed
 
 
 async def async_setup_entry(
@@ -31,7 +22,7 @@ async def async_setup_entry(
 ) -> None:
     """Set up EcoPanel sensor based on a config entry."""
     coordinator: EcoPanelDataUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]
-    entity_list: list = []
+    entity_list: list[Entity] = []
 
     # Collect from all devices the objects that can become a sensor
     for deviceid in coordinator.data.devices:
@@ -89,11 +80,11 @@ class AnalogInputEntity(CoordinatorEntity[EcoPanelDataUpdateCoordinator], Sensor
         self.objectid = objectid
 
     @property
-    def unique_id(self) -> str:
+    def unique_id(self) -> str:  # pyright: ignore[reportIncompatibleMethodOverride]
         return f"{self.deviceid}_{self.objectid}"
 
     @property
-    def name(self) -> str:
+    def name(self) -> str:  # pyright: ignore[reportIncompatibleMethodOverride]
         name = self.coordinator.config_entry.data.get(CONF_NAME, "object_name")
         if name == "description":
             return f"{self.coordinator.data.devices[self.deviceid].objects[self.objectid].description}"
@@ -108,12 +99,12 @@ class AnalogInputEntity(CoordinatorEntity[EcoPanelDataUpdateCoordinator], Sensor
             return f"{self.coordinator.data.devices[self.deviceid].objects[self.objectid].objectName}"
 
     @property
-    def entity_registry_enabled_default(self) -> bool:
+    def entity_registry_enabled_default(self) -> bool:  # pyright: ignore[reportIncompatibleMethodOverride]
         """Return if the entity should be enabled when first added to the entity registry."""
         return self.coordinator.config_entry.data.get(CONF_ENABLED, False)
 
     @property
-    def native_value(self):
+    def native_value(self):  # pyright: ignore[reportIncompatibleMethodOverride]
         value = (
             self.coordinator.data.devices[self.deviceid]
             .objects[self.objectid]
@@ -142,22 +133,25 @@ class AnalogInputEntity(CoordinatorEntity[EcoPanelDataUpdateCoordinator], Sensor
         return round(value, 1)
 
     @property
-    def icon(self):
+    def icon(self):  # pyright: ignore[reportIncompatibleMethodOverride]
         return "mdi:gauge"
 
     @property
-    def device_class(self) -> str | None:
+    def device_class(self) -> str | None:  # pyright: ignore[reportIncompatibleMethodOverride]
         if (
             units := self.coordinator.data.devices[self.deviceid]
             .objects[self.objectid]
             .units
         ):
+            # device_class_units = cast(
+            #     Mapping[str, Collection[str | type[StrEnum] | None]], DEVICE_CLASS_UNITS
+            # )
             return bacnet_to_device_class(units, DEVICE_CLASS_UNITS)
         else:
             return None
 
     @property
-    def native_unit_of_measurement(self) -> str | None:
+    def native_unit_of_measurement(self) -> str | None:  # pyright: ignore[reportIncompatibleMethodOverride]
         if (
             units := self.coordinator.data.devices[self.deviceid]
             .objects[self.objectid]
@@ -168,7 +162,7 @@ class AnalogInputEntity(CoordinatorEntity[EcoPanelDataUpdateCoordinator], Sensor
             return None
 
     @property
-    def extra_state_attributes(self) -> dict[str, Any]:
+    def extra_state_attributes(self) -> dict[str, Any]:  # pyright: ignore[reportIncompatibleMethodOverride]
         return {
             "inAlarm": bool(
                 self.coordinator.data.devices[self.deviceid]
@@ -193,7 +187,7 @@ class AnalogInputEntity(CoordinatorEntity[EcoPanelDataUpdateCoordinator], Sensor
         }
 
     @property
-    def device_info(self) -> DeviceInfo:
+    def device_info(self) -> DeviceInfo:  # pyright: ignore[reportIncompatibleMethodOverride]
         return DeviceInfo(
             identifiers={(DOMAIN, self.deviceid)},
             name=f"{self.coordinator.data.devices[self.deviceid].objects[self.deviceid].objectName}",
@@ -206,7 +200,7 @@ class AnalogInputEntity(CoordinatorEntity[EcoPanelDataUpdateCoordinator], Sensor
         )
 
     @property
-    def state_class(self) -> str:
+    def state_class(self) -> str:  # pyright: ignore[reportIncompatibleMethodOverride]
         if self.native_unit_of_measurement in UnitOfEnergy:
             return "total"
         elif self.native_unit_of_measurement in UnitOfVolume:
@@ -232,11 +226,11 @@ class MultiStateInputEntity(
         self.objectid = objectid
 
     @property
-    def unique_id(self) -> str:
+    def unique_id(self) -> str:  # pyright: ignore[reportIncompatibleMethodOverride]
         return f"{self.deviceid}_{self.objectid}"
 
     @property
-    def name(self) -> str:
+    def name(self) -> str:  # pyright: ignore[reportIncompatibleMethodOverride]
         name = self.coordinator.config_entry.data.get(CONF_NAME, "object_name")
         if name == "description":
             return f"{self.coordinator.data.devices[self.deviceid].objects[self.objectid].description}"
@@ -251,12 +245,12 @@ class MultiStateInputEntity(
             return f"{self.coordinator.data.devices[self.deviceid].objects[self.objectid].objectName}"
 
     @property
-    def entity_registry_enabled_default(self) -> bool:
+    def entity_registry_enabled_default(self) -> bool:  # pyright: ignore[reportIncompatibleMethodOverride]
         """Return if the entity should be enabled when first added to the entity registry."""
         return self.coordinator.config_entry.data.get(CONF_ENABLED, False)
 
     @property
-    def native_value(self):
+    def native_value(self):  # pyright: ignore[reportIncompatibleMethodOverride]
         state_val = (
             self.coordinator.data.devices[self.deviceid]
             .objects[self.objectid]
@@ -273,11 +267,11 @@ class MultiStateInputEntity(
             return state_val
 
     @property
-    def icon(self):
+    def icon(self):  # pyright: ignore[reportIncompatibleMethodOverride]
         return "mdi:menu"
 
     @property
-    def extra_state_attributes(self) -> dict[str, Any]:
+    def extra_state_attributes(self) -> dict[str, Any]:  # pyright: ignore[reportIncompatibleMethodOverride]
         return {
             "inAlarm": bool(
                 self.coordinator.data.devices[self.deviceid]
@@ -302,7 +296,7 @@ class MultiStateInputEntity(
         }
 
     @property
-    def device_info(self) -> DeviceInfo:
+    def device_info(self) -> DeviceInfo:  # pyright: ignore[reportIncompatibleMethodOverride]
         return DeviceInfo(
             identifiers={(DOMAIN, self.deviceid)},
             name=f"{self.coordinator.data.devices[self.deviceid].objects[self.deviceid].objectName}",

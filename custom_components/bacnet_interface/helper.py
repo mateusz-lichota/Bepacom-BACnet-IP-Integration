@@ -1,7 +1,11 @@
 """Helper functions for the integration"""
 
+from collections.abc import Mapping
+from enum import StrEnum
 import math
 from typing import Collection
+
+from homeassistant.components.sensor import SensorDeviceClass
 
 from homeassistant.const import (
     UnitOfArea,
@@ -557,7 +561,10 @@ def bacnet_to_ha_units(unit_in: str | None) -> str | None:
 
 
 def bacnet_to_device_class(
-    unit_in: str | None, device_class_units: dict[str, Collection[str]]
+    unit_in: str | None,
+    device_class_units: Mapping[
+        SensorDeviceClass, Collection[type[StrEnum] | str | None]
+    ],
 ) -> str | None:
     """BACnet engineering unit to device class"""
     if unit := bacnet_to_ha_units(unit_in):
