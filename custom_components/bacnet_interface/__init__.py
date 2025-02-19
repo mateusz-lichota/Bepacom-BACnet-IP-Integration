@@ -229,8 +229,8 @@ async def async_monitor_data_size(
 
             hass.config_entries.async_schedule_reload(entry.entry_id)
 
-        for device in coordinator.data.devices:
-            if len(coordinator.data.devices[device].objects) > old_device_sizes[device]:
+        for device_name, device in coordinator.data.devices.items():
+            if len(device.objects) > old_device_sizes.get(device_name, 0):
                 LOGGER.debug("Increased object size")
 
                 hass.config_entries.async_schedule_reload(entry.entry_id)
